@@ -98,7 +98,6 @@ omit = [
 
 [tool.coverage.paths]
 markitdown = ["src/markitdown", "*/markitdown/src/markitdown"]
-tests = ["tests", "*/markitdown/tests"]
 
 [tool.coverage.report]
 exclude_lines = [

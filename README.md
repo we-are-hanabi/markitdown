@@ -1,52 +1,37 @@
-# MarkItDown
+# MarkItDown (Hanabi fork — magika optional)
 
-> [!IMPORTANT]
-> MarkItDown is a Python package and command-line utility for converting various files to Markdown (e.g., for indexing, text analysis, etc). 
->
-> For more information, and full documentation, see the project [README.md](https://github.com/microsoft/markitdown) on GitHub.
+Fork of [microsoft/markitdown](https://github.com/microsoft/markitdown) v0.1.4 with `magika` made optional for serverless deployments.
 
-## Installation
+## Why this fork?
 
-From PyPI:
+MarkItDown's core dependency `magika` (file type detection) pulls in `onnxruntime` + `numpy` + `sympy` = **~176 MB** of transitive deps. This exceeds Vercel's 250 MB serverless function limit when combined with `pymupdf`.
 
-```bash
-pip install markitdown[all]
-```
+Since our API already knows the MIME type from the client, magika's file detection is unnecessary.
 
-From source:
+## What changed?
 
-```bash
-git clone git@github.com:microsoft/markitdown.git
-cd markitdown
-pip install -e packages/markitdown[all]
-```
+- `pyproject.toml`: removed `magika~=0.6.1` and `onnxruntime` from core dependencies
+- `_markitdown.py`: `import magika` wrapped in `try/except`, `_MAGIKA_AVAILABLE` flag guards all magika usage
+- When magika is absent, `_get_stream_info_guesses()` falls back to extension/mimetype-based detection via `StreamInfo`
 
-## Usage
+## Branch layout
 
-### Command-Line
+- **`slim`** (default) — flat layout, used in production (`pip install` / `uv` compatible)
+- `main` — original monorepo layout (kept for upstream sync reference)
+
+## Syncing with upstream
+
+When Microsoft releases a new version:
 
 ```bash
-markitdown path-to-file.pdf > document.md
+git fetch upstream
+git checkout main
+git merge upstream/main
+# Apply the magika-optional patch (3 locations in _markitdown.py + pyproject.toml)
+git checkout slim
+# Copy updated files from main to slim root
 ```
 
-### Python API
+## When to remove this fork
 
-```python
-from markitdown import MarkItDown
-
-md = MarkItDown()
-result = md.convert("test.xlsx")
-print(result.text_content)
-```
-
-### More Information
-
-For more information, and full documentation, see the project [README.md](https://github.com/microsoft/markitdown) on GitHub.
-
-## Trademarks
-
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft
-trademarks or logos is subject to and must follow
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.
+When [microsoft/markitdown#1234](https://github.com/microsoft/markitdown/issues/1234) is resolved (magika made optional upstream), switch back to `markitdown[docx,pptx,xlsx]>=X.Y.Z` in `requirements.txt`.

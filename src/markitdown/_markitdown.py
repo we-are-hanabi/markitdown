@@ -11,6 +11,7 @@ from typing import Any, List, Dict, Optional, Union, BinaryIO
 from pathlib import Path
 from urllib.parse import urlparse
 from warnings import warn
+import codecs
 import requests
 import charset_normalizer
 
@@ -20,7 +21,6 @@ try:
     _MAGIKA_AVAILABLE = True
 except ImportError:
     _MAGIKA_AVAILABLE = False
-import codecs
 
 from ._stream_info import StreamInfo
 from ._uri_utils import parse_data_uri, file_uri_to_path
